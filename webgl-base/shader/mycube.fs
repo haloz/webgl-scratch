@@ -1,7 +1,9 @@
 <script type="x-shader/x-fragment">
 	precision mediump float;
-    varying vec4 vColor;
+    varying vec2 vTextureCoordinates;
+    uniform sampler2D uSampler;
+    
 	void main() {
-	  gl_FragColor = vColor;
+	  gl_FragColor = texture2D(uSampler, vTextureCoordinates);
 	}           
 </script>
