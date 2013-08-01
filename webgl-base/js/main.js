@@ -4,11 +4,12 @@ requirejs.config({
   paths: {
   'jquery'     : gDebug ? 'jquery-1.8.3' : 'http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min',
   'glmatrix'   : gDebug ? 'gl-matrix' : 'gl-matrix-min',
-  'webgl-debug'  : 'webgl-debug'
+  'webgl-debug' : 'webgl-debug',
+  'webgl-utils' : 'webgl-utils'
   }
 });
 
-require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
+require(['jquery', 'glmatrix', 'webgl-utils', (gDebug ? 'webgl-debug' : '')], function($){
   "use strict";
   var createGLContext = function(canvas) {
     var context = null;
@@ -40,12 +41,39 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
     env.gl.bindBuffer(env.gl.ARRAY_BUFFER, env.vertexBuffer);
     var 
       triangleVertices = [
-         0.0,  0.0,  0.0,
-         1.0,  0.0,  0.0,
-         0.0,  1.0,  0.0
+         0.0,  0.0,  0.0, 255,   0,   0, 255, // xyz,rgba
+         1.0,  0.0,  0.0,   0, 250,  10, 255,
+         0.0,  1.0,  0.0,   0,   0, 240, 255
       ],
-      itemCount = triangleVertices.length / 3; 
-    env.gl.bufferData(env.gl.ARRAY_BUFFER, new Float32Array(triangleVertices), env.gl.STATIC_DRAW);
+      itemCount = 3;
+      
+    // 3x4byte for xyz + 4x1byte for rgba 
+    var vertexSizeInBytes = 3 * Float32Array.BYTES_PER_ELEMENT + 4 * Uint8Array.BYTES_PER_ELEMENT;
+    var vertexSizeInFloats = vertexSizeInBytes / Float32Array.BYTES_PER_ELEMENT;
+    // create a buffer of that total size
+    var buffer = new ArrayBuffer(itemCount * vertexSizeInBytes);
+    // view pointer to the position entries of the buffer
+    var positionView = new Float32Array(buffer);
+    // view pointer to the color entries of the buffer
+    var colorView = new Uint8Array(buffer);
+    
+    // now map all the values from triangleVertices (js array) to the typed buffer views
+    for(var i = 0, k = 0, positionOffsetInFloats = 0, colorOffsetsInBytes = 12; i < itemCount; i++, k+=7) {
+      positionView[positionOffsetInFloats]     = triangleVertices[k];
+      positionView[positionOffsetInFloats + 1] = triangleVertices[k+1];
+      positionView[positionOffsetInFloats + 2] = triangleVertices[k+2];
+      colorView[colorOffsetsInBytes]     = triangleVertices[k+3];
+      colorView[colorOffsetsInBytes + 1] = triangleVertices[k+4];
+      colorView[colorOffsetsInBytes + 2] = triangleVertices[k+5];
+      colorView[colorOffsetsInBytes + 3] = triangleVertices[k+6];
+      
+      positionOffsetInFloats += vertexSizeInFloats;
+      colorOffsetsInBytes += vertexSizeInBytes;
+    }
+       
+    env.gl.bufferData(env.gl.ARRAY_BUFFER, buffer, env.gl.STATIC_DRAW);
+    env.vertexBuffer.positionSize = 3;
+    env.vertexBuffer.colorSize = 4;
     env.vertexBuffer.itemSize = 3;      // size of an item, always 3 verts per triangle with buffered strip
     env.vertexBuffer.numberOfItems = itemCount;                        
   };
@@ -53,7 +81,7 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
   var setupMatrices = function(env) {
     env.modelViewMatrix = mat4.create();
     mat4.identity(env.modelViewMatrix);
-    mat4.lookAt([3.0, 4.0, -10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], env.modelViewMatrix);
+    mat4.lookAt([1.0, 2.0, -5.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], env.modelViewMatrix);
     
     env.projectionMatrix = mat4.create();        
     mat4.perspective(
@@ -105,6 +133,7 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
             
     // assign variables to shaders
     env.shaderProgram.vertexPositionAttribute = env.gl.getAttribLocation(env.shaderProgram, "aVertexPosition");
+    env.shaderProgram.vertexColorAttribute = env.gl.getAttribLocation(env.shaderProgram, "aVertexColor");
     env.gl.uniformMatrix4fv(          
       env.gl.getUniformLocation(env.shaderProgram, "uMVMatrix"),
       false,
@@ -114,7 +143,11 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
       env.gl.getUniformLocation(env.shaderProgram, "uPMatrix"), 
       false, 
       env.projectionMatrix
-    );    
+    );
+    
+    // activate arrays
+    env.gl.enableVertexAttribArray(env.shaderProgram.vertexPositionAttribute);
+    env.gl.enableVertexAttribArray(env.shaderProgram.vertexColorAttribute);
   };
 
   var startup = function(env) {
@@ -124,21 +157,31 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
     setupMatrices(env);
     setupShaders(env);
     setupBuffers(env);    
-    env.gl.clearColor(0.0, 1.0, 0.0, 1.0);
+    env.gl.clearColor(0.0, 0.0, 0.0, 1.0);
   };  
   
   var draw = function(env) {
     env.gl.clear(env.gl.COLOR_BUFFER_BIT);
+    
+    // http://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttribPointer.xml
     env.gl.vertexAttribPointer(
       env.shaderProgram.vertexPositionAttribute, 
-      env.vertexBuffer.itemSize, 
+      env.vertexBuffer.positionSize, 
       env.gl.FLOAT,
-      false,
-      0,
-      0
+      false, // no need to normaliz the values, they're already floats
+      16, // stride => 12byte xzy + 4byte rgba, in bytes
+      0 // no offset as xyz values are first, in bytes
     );
-    env.gl.enableVertexAttribArray(env.shaderProgram.vertexPositionAttribute);
-    env.gl.drawArrays(env.gl.TRIANGLE_STRIP, 0, env.vertexBuffer.numberOfItems);
+    env.gl.vertexAttribPointer(
+      env.shaderProgram.vertexColorAttribute, 
+      env.vertexBuffer.colorSize, 
+      env.gl.UNSIGNED_BYTE,
+      true, // normalized => means that 0-255 rgba values are converted into unsigned floats from 0.0 to 1.0 
+      16, // stride => 12byte xzy + 4byte rgba, in bytes
+      12 // offset, rgba values come after the 12byte xyz, in bytes
+    );
+        
+    env.gl.drawArrays(env.gl.TRIANGLES, 0, env.vertexBuffer.numberOfItems);
   };  
 
   // ---------------------------

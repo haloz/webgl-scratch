@@ -10,3 +10,4 @@ Todos
 * update to latest jQuery (Git!)
 * update to latest RequireJS (Git!)
 * unify all external dependencies via Git
+* documentation
