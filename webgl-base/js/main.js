@@ -1,41 +1,40 @@
-var gDebug = 0;
+var gDebug = 1;
 
 requirejs.config({
-	paths: {
-		'jquery'   		: gDebug ? 'jquery-1.8.3' : 'http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min',
-		'glmatrix' 		: gDebug ? 'gl-matrix' : 'gl-matrix-min',
-		'webgl-debug'	: 'webgl-debug'
-	}	
+  paths: {
+  'jquery'     : gDebug ? 'jquery-1.8.3' : 'http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min',
+  'glmatrix'   : gDebug ? 'gl-matrix' : 'gl-matrix-min',
+  'webgl-debug'  : 'webgl-debug'
+  }
 });
 
 require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
-	console.debug("jquery loaded:", $);
-	
-	var createGLContext = function(canvas) {
-		var context = null;
-		if(!window.WebGLRenderingContext) {
-		  alert("Get a WebGL browser at http://get.webgl.org");
-		  return null;
-		}
-		$.each(["webgl", "experimental-webgl"], function(undefined, element) {
-		  try {
-		    context = canvas.getContext(element);
-		  } catch(e) {
-		    if(context) {              
-		      return; // breaks from each
-		    } 
-		  }
-		});
-		if(context) {
-		  // full canvas area
-		  context.viewportWidth = canvas.width;
-		  context.viewportHeight = canvas.height; 
-		} else {
-		  alert("Failed to create WebGL context. You browser basically supports WebGL but it appears to be deactivated.");
-		}
-		return context;
-	};
-	
+  "use strict";
+  var createGLContext = function(canvas) {
+    var context = null;
+    if(!window.WebGLRenderingContext) {
+      alert("Get a WebGL browser at http://get.webgl.org");
+      return null;
+    }
+    $.each(["webgl", "experimental-webgl"], function(index, element) {
+      try {
+        context = canvas.getContext(element);
+      } catch(e) {
+        if(context) {              
+          return; // breaks from each
+        } 
+      }
+    });
+    if(context) {
+      // full canvas area
+      context.viewportWidth = canvas.width;
+      context.viewportHeight = canvas.height; 
+    } else {
+      alert("Failed to create WebGL context. You browser basically supports WebGL but it appears to be deactivated.");
+    }
+    return context;
+  };
+  
   var setupBuffers = function(env) {
     env.vertexBuffer = env.gl.createBuffer();
     env.gl.bindBuffer(env.gl.ARRAY_BUFFER, env.vertexBuffer);
@@ -43,9 +42,7 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
       triangleVertices = [
          0.0,  0.0,  0.0,
          1.0,  0.0,  0.0,
-         0.0,  1.0,  0.0,
-         1.0,  1.0,  0.0,
-         1.0,  1.0, -1.0
+         0.0,  1.0,  0.0
       ],
       itemCount = triangleVertices.length / 3; 
     env.gl.bufferData(env.gl.ARRAY_BUFFER, new Float32Array(triangleVertices), env.gl.STATIC_DRAW);
@@ -54,11 +51,11 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
   };
   
   var setupMatrices = function(env) {
-  	env.modelViewMatrix = mat4.create();
+    env.modelViewMatrix = mat4.create();
     mat4.identity(env.modelViewMatrix);
     mat4.lookAt([3.0, 4.0, -10.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], env.modelViewMatrix);
     
-  	env.projectionMatrix = mat4.create();        
+    env.projectionMatrix = mat4.create();        
     mat4.perspective(
       45, 
       env.gl.viewportWidth / env.gl.viewportHeight,
@@ -67,30 +64,36 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
       env.projectionMatrix
     );    
   };
-
-  var loadShaderFromDOM = function(env, id) {
-    var shaderNode = $("#"+id);
-    if(!shaderNode) {
-      return null; 
-    }
-    var shader = env.gl.createShader(
-      shaderNode.attr("type") == "x-shader/x-vertex" ? env.gl.VERTEX_SHADER : env.gl.FRAGMENT_SHADER
-    );
-    env.gl.shaderSource(shader, shaderNode.text());
-    env.gl.compileShader(shader);
-    
-    if(!env.gl.getShaderParameter(shader, env.gl.COMPILE_STATUS)) {
-      alert(env.gl.getShaderInfoLog(shader));
-    }
+  
+  var loadShaderViaAjax = function(env, filename) {  
+    var shader;                      
+    $.ajax({
+      async: false,
+      url: filename,
+      success: function (data) {
+        var jqdata = $(data),      
+            shaderType = jqdata.attr("type") === "x-shader/x-vertex" ? env.gl.VERTEX_SHADER : env.gl.FRAGMENT_SHADER,
+            shaderSource = jqdata.html();
+              
+        shader = env.gl.createShader(shaderType);
+        env.gl.shaderSource(shader, shaderSource);
+        env.gl.compileShader(shader);
+        
+        if(!env.gl.getShaderParameter(shader, env.gl.COMPILE_STATUS)) {
+          alert(env.gl.getShaderInfoLog(shader));
+        }      
+      },
+      dataType: 'html'
+    });
     return shader;
   };
   
   var setupShaders = function(env) {
-  	// load shader code
-    var vertexShader = loadShaderFromDOM(env, "shader-vs"),
-        fragmentShader = loadShaderFromDOM(env, "shader-fs");
+    // load shader code
+    var vertexShader = loadShaderViaAjax(env, 'shader/mycube.vs'),
+        fragmentShader = loadShaderViaAjax(env, 'shader/mycube.fs');
 
-		// compile shaders
+    // compile shaders
     env.shaderProgram = env.gl.createProgram();
     env.gl.attachShader(env.shaderProgram, vertexShader);
     env.gl.attachShader(env.shaderProgram, fragmentShader);
@@ -99,9 +102,9 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
       alert("Failed to setup shaders");
     }
     env.gl.useProgram(env.shaderProgram);
-		  	    	
-  	// assign variables to shaders
-   	env.shaderProgram.vertexPositionAttribute = env.gl.getAttribLocation(env.shaderProgram, "aVertexPosition");
+            
+    // assign variables to shaders
+    env.shaderProgram.vertexPositionAttribute = env.gl.getAttribLocation(env.shaderProgram, "aVertexPosition");
     env.gl.uniformMatrix4fv(          
       env.gl.getUniformLocation(env.shaderProgram, "uMVMatrix"),
       false,
@@ -114,18 +117,16 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
     );    
   };
 
-	var startup = function(env) {
-		console.debug("gdebug", gDebug, "jq", $);
-		env.canvas = $("#simplecanvas")[0];		
-		env.gl = gDebug ? WebGLDebugUtils.makeDebugContext(createGLContext(env.canvas)) : createGLContext(env.canvas);
-		
-		setupMatrices(env);
+  var startup = function(env) {
+    env.canvas = $("#simplecanvas")[0];  
+    env.gl = gDebug ? WebGLDebugUtils.makeDebugContext(createGLContext(env.canvas)) : createGLContext(env.canvas);
+  
+    setupMatrices(env);
     setupShaders(env);
-    setupBuffers(env);		
-		
-		env.gl.clearColor(0.0, 1.0, 0.0, 1.0);
-	};	
-	
+    setupBuffers(env);    
+    env.gl.clearColor(0.0, 1.0, 0.0, 1.0);
+  };  
+  
   var draw = function(env) {
     env.gl.clear(env.gl.COLOR_BUFFER_BIT);
     env.gl.vertexAttribPointer(
@@ -138,23 +139,19 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : '')], function($){
     );
     env.gl.enableVertexAttribArray(env.shaderProgram.vertexPositionAttribute);
     env.gl.drawArrays(env.gl.TRIANGLE_STRIP, 0, env.vertexBuffer.numberOfItems);
-  };	
+  };  
 
-	// ---------------------------
+  // ---------------------------
 
-	$(document).ready(function() {
-		"use strict";
-		console.debug("dom ready");
-			
-		// main routine		
-		var environment = { 
+  $(document).ready(function() {     
+    // main routine  
+    var environment = { 
       gl : undefined,
       canvas : undefined,
       shaderProgram : undefined,
       vertexBuffer : undefined
-    };
-        
+    };        
     startup(environment);
     draw(environment);
-	});
+  });
 });
