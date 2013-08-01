@@ -28,4 +28,4 @@ Todos afterwards
 * find algorithm for circle aligning multiple cubes ("Rondell")
 * add multi-texturing to display product images onto cube fronts
 * add mouse and keyboard handling for prev/next (+circular movement animation)
-* do everything much more easy with a library or framework :)
+* do everything much more easy with a library or framework :) 
