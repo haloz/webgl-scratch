@@ -12,5 +12,7 @@ bugfix 456
 
 master again!
 
+do sth stupid
+
 git is so easy!
 =============
