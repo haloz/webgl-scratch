@@ -8,6 +8,7 @@ heyho here we go
 stuff I do in the master
 stuff I'm still doing in the master
 bugfix 123
+bugfix 456
 
 git is so easy!
 =============
