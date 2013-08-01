@@ -10,5 +10,7 @@ stuff I'm still doing in the master
 bugfix 123
 bugfix 456
 
+master again!
+
 git is so easy!
 =============
