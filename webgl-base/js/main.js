@@ -1,9 +1,9 @@
-var gDebug = 1;
+var gDebug = 0;
 var gDebugContextLost = 0;
 
 requirejs.config({
   paths: {
-    'jquery'     : gDebug ? 'jquery-1.8.3' : 'http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min',
+    'jquery'     : gDebug ? 'jquery-2.0.3' : 'http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min',
     'glmatrix'   : gDebug ? 'gl-matrix' : 'gl-matrix-min',
     'webgl-debug'  : 'webgl-debug',
     'webgl-utils'  : 'webgl-utils'
@@ -19,9 +19,7 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils'], fu
     return context;
   };
   
-  var onContextLost = function(event) {
-    console.debug("onContextLost called");
-    
+  var onContextLost = function(event) {       
     // event.data.env
     event.preventDefault();
     cancelAnimFrame(event.data.env.requestID);
@@ -34,8 +32,6 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils'], fu
   };
   
   var onContextRestored = function(event) {
-    console.debug("onContextRestored called");
-    
     startup(event.data.env);    
     draw(event.data.env);   
   };
@@ -145,17 +141,14 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils'], fu
   
   var loadImageForTexture = function(env, url, texture) {
     var img = $("<img/>").attr("src", url);
-    console.debug("img", img);
     env.ongoingImageLoads.push(img);
     $(img).on("load", { "env" : env, "texture" : texture }, function(event){
-      console.debug("load", "this", this);
       env.ongoingImageLoads.splice(env.ongoingImageLoads.indexOf(this), 1);
       onTextureFinishLoading(event.data.env, this, event.data.texture);
     });    
   };
   
   var onTextureFinishLoading = function(env, image, texture) {
-    console.debug("onTextureFinishLoading");
     env.gl.bindTexture(env.gl.TEXTURE_2D, texture);
     env.gl.pixelStorei(env.gl.UNPACK_FLIP_Y_WEBGL, true);
     env.gl.texImage2D(env.gl.TEXTURE_2D, 0, env.gl.RGBA, env.gl.RGBA, env.gl.UNSIGNED_BYTE, image);
@@ -169,7 +162,6 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils'], fu
     // cube tex
     env.woodTexture = env.gl.createTexture();
     loadImageForTexture(env, "textures/wood_128x128.jpg", env.woodTexture);
-    console.debug("setupped tex:", env.woodTexture);
   };
   
   var setupMatrices = function(env) {
@@ -197,7 +189,7 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils'], fu
   
   var popModelViewMatrix = function(env) {
     if(env.modelViewMatrixStack.lenght === 0) {
-      console.debug("error: cannot pop, env.modelViewMatrixStack stack is empty!");
+      console.error("error: cannot pop, env.modelViewMatrixStack stack is empty!");
     }
     env.modelViewMatrix = env.modelViewMatrixStack.pop();
   };
@@ -267,14 +259,11 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils'], fu
   };
 
   var startup = function(env) {
-    console.debug("startup", "window.gDebugContextLost", gDebugContextLost);
     if(window.gDebugContextLost) {
       env.canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas(env.canvas);
       $("body").keypress({ "env" : env }, function(event) {
-        console.debug("keypressed", event.keyCode);
         if(event.keyCode == 13) {
           event.preventDefault();
-          console.debug("screwing gl context...");
           event.data.env.canvas.loseContext();
         }
       });
@@ -398,28 +387,35 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils'], fu
     env.nbrOfFramesForFPS++;    
   };
 
-  // ---------------------------
-
-  $(document).ready(function() {     
-    // main routine  
-    var environment = { 
-      gl : undefined,
-      canvas : $("#simplecanvas")[0],
-      shaderProgram : undefined,
-      vertexBuffer : undefined,
-      animationStartTime : undefined,
-      currentTime : undefined,
-      fpsCounter : undefined,
-      cubeRotationDegree : 0,
-      previousFrameTimeStamp : Date.now(),
-      nbrOfFramesForFPS : 0,
-      ongoingImageLoads : []
-    };
-        
-    startup(environment);
-                
-    draw(environment);
-
-    console.debug("tex units", environment.gl.getParameter(environment.gl.MAX_TEXTURE_IMAGE_UNITS));              
-  });
+  /* 
+    although we now use the dom ready eventing of require instead of jquery this 
+    block in block require is ugly. Maybe I can depower jQuery to some degree
+    (noconflict, see http://requirejs.org/docs/jquery.html).
+    Also I should setup a performance test to find the best loading order
+  */
+  require(['domReady'], function (domReady) {
+    domReady(function () {
+      // main routine  
+      var environment = { 
+        gl : undefined,
+        canvas : $("#simplecanvas")[0],
+        shaderProgram : undefined,
+        vertexBuffer : undefined,
+        animationStartTime : undefined,
+        currentTime : undefined,
+        fpsCounter : undefined,
+        cubeRotationDegree : 0,
+        previousFrameTimeStamp : Date.now(),
+        nbrOfFramesForFPS : 0,
+        ongoingImageLoads : []
+      };
+          
+      startup(environment);
+                  
+      draw(environment);
+    });
+  });  
 });
+
+
+

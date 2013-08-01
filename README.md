@@ -14,12 +14,10 @@ Setup & Run
 
 Todos
 =============
-* get DOM ready event handling into requireJS loader instead of extra jQuery document ready
 * setup test driven development (Karma? Jasmine? JUnit?)
-* update to latest jQuery (Git!)
-* update to latest RequireJS (Git!)
 * unify all external dependencies via Git
 * documentation for current state
+* find better dom ready handling
 
 Todos afterwards
 =============
