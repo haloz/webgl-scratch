@@ -19,4 +19,13 @@ Todos
 * update to latest jQuery (Git!)
 * update to latest RequireJS (Git!)
 * unify all external dependencies via Git
-* documentation
+* documentation for current state
+
+Todos afterwards
+=============
+* refactor texture handling
+* add sub modules or classes to capsulate cube rendering => multiple objects!
+* find algorithm for circle aligning multiple cubes ("Rondell")
+* add multi-texturing to display product images onto cube fronts
+* add mouse and keyboard handling for prev/next (+circular movement animation)
+* do everything much more easy with a library or framework :)
