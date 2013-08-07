@@ -255,8 +255,6 @@ BaseRenderer.prototype = {
 	},
 
 	startup : function(env) {
-	  console.debug("startup", "this.gDebugContextLost", this.gDebugContextLost);
-	  console.debug("jquery object", this.jQuery);
 	  if(this.gDebugContextLost) {
 	    env.canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas(env.canvas);
 	    this.jQuery("body").keypress({ "env" : env }, function(event) {
@@ -281,18 +279,6 @@ BaseRenderer.prototype = {
 	  
 	  env.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	  env.gl.enable(env.gl.DEPTH_TEST);
-	  /*
-	  env.gl.disable(env.gl.DEPTH_TEST);
-	  env.gl.depthFunc(env.gl.LESS);
-	  env.gl.blendFunc(env.gl.SRC_ALPHA, env.gl.ONE);
-	  env.gl.enable(env.gl.BLEND);
-	  */
-	  /*
-	  env.gl.frontFace(env.gl.CCW);
-	  env.gl.enable(env.gl.CULL_FACE);
-	  env.gl.cullFace(env.gl.BACK);
-	  */
-	  //env.gl.disable(env.gl.CULL_FACE);
 	  
 	  // world
 	  this.setupMatrices(env);

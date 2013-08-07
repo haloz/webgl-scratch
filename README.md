@@ -15,6 +15,8 @@ Setup & Run
 Todos
 =============
 * get DOM ready event handling into requireJS loader instead of extra jQuery document ready
+* rewrite into class concept instead of loose functions
+* split base renderer from actual application
 * setup test driven development (Karma? Jasmine? JUnit?)
 * update to latest jQuery (Git!)
 * update to latest RequireJS (Git!)
