@@ -1,7 +1,8 @@
-var BaseRenderer = function BaseRenderer(param_debug, param_jQuery) {	
+var BaseRenderer = function BaseRenderer(param_debug, param_jQuery, environment) {	
 	this.gDebugContextLost = 0;
 	this.gDebug = param_debug;
-	this.jQuery = param_jQuery;	
+	this.jQuery = param_jQuery;
+	this.env = environment;
 }
 
 BaseRenderer.prototype = {
@@ -189,7 +190,7 @@ BaseRenderer.prototype = {
 	  env.modelViewMatrix = env.modelViewMatrixStack.pop();
 	},
 
-	loadShaderViaAjax : function(env, filename) {  
+	loadShaderViaAjax : function(filename) {  
 	  var shader;
 	  var _this = this;                      
 	  this.jQuery.ajax({
@@ -197,15 +198,15 @@ BaseRenderer.prototype = {
 	    url: filename,
 	    success: function (data) {
 	      var jqdata = _this.jQuery(data),      
-	          shaderType = jqdata.attr("type") === "x-shader/x-vertex" ? env.gl.VERTEX_SHADER : env.gl.FRAGMENT_SHADER,
+	          shaderType = jqdata.attr("type") === "x-shader/x-vertex" ? _this.env.gl.VERTEX_SHADER : _this.env.gl.FRAGMENT_SHADER,
 	          shaderSource = jqdata.html();
 	            
-	      shader = env.gl.createShader(shaderType);
-	      env.gl.shaderSource(shader, shaderSource);
-	      env.gl.compileShader(shader);
+	      shader = _this.env.gl.createShader(shaderType);
+	      _this.env.gl.shaderSource(shader, shaderSource);
+	      _this.env.gl.compileShader(shader);
 	      
-	      if(!env.gl.getShaderParameter(shader, env.gl.COMPILE_STATUS)) {
-	        alert(env.gl.getShaderInfoLog(shader));
+	      if(!_this.env.gl.getShaderParameter(shader, _this.env.gl.COMPILE_STATUS)) {
+	        alert(_this.env.gl.getShaderInfoLog(shader));
 	      }      
 	    },
 	    dataType: 'html'
@@ -215,8 +216,8 @@ BaseRenderer.prototype = {
 
 	setupShaders : function(env) {
 	  // load shader code
-	  var vertexShader = this.loadShaderViaAjax(env, 'shader/mycube.vs'),
-	      fragmentShader = this.loadShaderViaAjax(env, 'shader/mycube.fs');
+	  var vertexShader = this.loadShaderViaAjax('shader/mycube.vs'),
+	      fragmentShader = this.loadShaderViaAjax('shader/mycube.fs');
 
 	  // compile shaders
 	  env.shaderProgram = env.gl.createProgram();
@@ -289,6 +290,9 @@ BaseRenderer.prototype = {
 	  env.gl.uniform1i(env.shaderProgram.uniformSamplerLoc, 0);
 	  
 	  env.fpsCounter = this.jQuery('#fps-counter')[0];    
+
+	  // todo: use the env member variable everywhere instead of function parameters
+	  this.env = env;
 	},
 
 	drawCube : function(env, texture) {
