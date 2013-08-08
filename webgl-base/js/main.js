@@ -34,9 +34,9 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils', 'ba
     console.debug("jq", jQuery);
     var baseRenderer = new BaseRenderer(environment, jQuery, gDebug);
         
-    baseRenderer.startup();
+    baseRenderer.startup(environment);
                 
-    baseRenderer.draw();
+    baseRenderer.draw(environment);
 
     //console.debug("tex units", environment.gl.getParameter(environment.gl.MAX_TEXTURE_IMAGE_UNITS));              
   });
