@@ -4,10 +4,6 @@ define(['jQuery', 'main'], function($) {
       expect($('#simplecanvas')[0]).toBeDefined();
     });
 
-    it("should")
-
-    console.debug("env", environment);
-
     it("should exsting an webgl environment", function() {
       expect(window.environment).toEqual(object);
     });
