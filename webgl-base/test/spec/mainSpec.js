@@ -20,7 +20,7 @@ define(['jquery', 'glmatrix', 'webgl-debug', 'webgl-utils', 'base-renderer'], fu
     gl : undefined,
     canvas : $("#simplecanvas")[0],
   };
-  var baseRenderer = new BaseRenderer(1, $, environment);
+  var baseRenderer = new BaseRenderer(environment, $, 1);
 
   describe('The context handling', function() {    
     it("has a createContect function that should return a WebGL context", function() {
@@ -30,11 +30,10 @@ define(['jquery', 'glmatrix', 'webgl-debug', 'webgl-utils', 'base-renderer'], fu
     });
 
     it("should be able to create a valid gl context onto env.gl", function() {
-      baseRenderer.env.gl = WebGLDebugUtils.makeDebugContext(baseRenderer.createGLContext(environment.canvas));
+      baseRenderer.env.gl = WebGLDebugUtils.makeDebugContext(
+        baseRenderer.createGLContext(environment.canvas));
       expect(baseRenderer.env.gl).toBeDefined();   
-    });
-
-       
+    });       
   });
 
   describe('the shader loader', function() {

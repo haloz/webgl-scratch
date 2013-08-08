@@ -1,4 +1,4 @@
-var BaseRenderer = function BaseRenderer(param_debug, param_jQuery, environment) {	
+var BaseRenderer = function BaseRenderer(environment, param_jQuery, param_debug) {	
 	this.gDebugContextLost = 0;
 	this.gDebug = param_debug;
 	this.jQuery = param_jQuery;
@@ -157,7 +157,6 @@ BaseRenderer.prototype = {
 	  // cube tex
 	  env.woodTexture = env.gl.createTexture();
 	  this.loadImageForTexture(env, "textures/wood_128x128.jpg", env.woodTexture);
-	  console.debug("setupped tex:", env.woodTexture);
 	},
 	  
 	setupMatrices : function(env) {
@@ -185,7 +184,7 @@ BaseRenderer.prototype = {
 
 	popModelViewMatrix : function(env) {
 	  if(env.modelViewMatrixStack.lenght === 0) {
-	    console.debug("error: cannot pop, env.modelViewMatrixStack stack is empty!");
+	    console.error("error: cannot pop, env.modelViewMatrixStack stack is empty!");
 	  }
 	  env.modelViewMatrix = env.modelViewMatrixStack.pop();
 	},
@@ -255,10 +254,10 @@ BaseRenderer.prototype = {
 	  );    
 	},
 
-	startup : function(env) {
+	startup : function() {
 	  if(this.gDebugContextLost) {
-	    env.canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas(env.canvas);
-	    this.jQuery("body").keypress({ "env" : env }, function(event) {
+	    this.env.canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas(this.env.canvas);
+	    this.jQuery("body").keypress({ "env" : this.env }, function(event) {
 	      console.debug("keypressed", event.keyCode);
 	      if(event.keyCode == 13) {
 	        event.preventDefault();
@@ -267,32 +266,34 @@ BaseRenderer.prototype = {
 	      }
 	    });
 	  }
-	  
-	  this.jQuery(env.canvas)
-	   .on("webglcontextlost", { "env" : env }, this.onContextLost)
-	   .on("webglcontextrestored", { "env" : env }, this.onContextRestored);
+
+	  this.jQuery(this.env.canvas)
+	   .on("webglcontextlost", { "env" : this.env }, this.onContextLost)
+	   .on("webglcontextrestored", { "env" : this.env }, this.onContextRestored);
 	              
-	  env.gl = this.gDebug ? WebGLDebugUtils.makeDebugContext(this.createGLContext(env.canvas)) : this.createGLContext(env.canvas);   
+	  this.env.gl = this.gDebug ? 
+	  	WebGLDebugUtils.makeDebugContext(this.createGLContext(this.env.canvas)) : 
+	  	this.createGLContext(this.env.canvas);   
 	  
-	  this.setupShaders(env);
-	  this.setupBuffers(env);    
-	  this.setupTextures(env);
+	  this.setupShaders(this.env);
+	  this.setupBuffers(this.env);    
+	  this.setupTextures(this.env);
 	  
-	  env.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-	  env.gl.enable(env.gl.DEPTH_TEST);
+	  this.env.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	  this.env.gl.enable(this.env.gl.DEPTH_TEST);
 	  
 	  // world
-	  this.setupMatrices(env);
-	  this.uploadModelViewMatrixToShader(env);
-	  this.uploadProjectionMatrixToShader(env);
+	  this.setupMatrices(this.env);
+	  this.uploadModelViewMatrixToShader(this.env);
+	  this.uploadProjectionMatrixToShader(this.env);
 	  
 	  // set uSampler in fragment shader to have the value 0 so it matches the texture unit gl.TEXTURE0
-	  env.gl.uniform1i(env.shaderProgram.uniformSamplerLoc, 0);
+	  this.env.gl.uniform1i(this.env.shaderProgram.uniformSamplerLoc, 0);
 	  
-	  env.fpsCounter = this.jQuery('#fps-counter')[0];    
+	  this.env.fpsCounter = this.jQuery('#fps-counter')[0];    
 
 	  // todo: use the env member variable everywhere instead of function parameters
-	  this.env = env;
+	  //this.env = env;
 	},
 
 	drawCube : function(env, texture) {

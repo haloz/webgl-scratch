@@ -31,12 +31,11 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils', 'ba
       ongoingImageLoads : []
     };
 
-    console.debug("jq", jQuery);
     var baseRenderer = new BaseRenderer(environment, jQuery, gDebug);
         
-    baseRenderer.startup(environment);
+    baseRenderer.startup();
                 
-    baseRenderer.draw(environment);
+    baseRenderer.draw(baseRenderer.env);  // todo: remove param => use member!
 
     //console.debug("tex units", environment.gl.getParameter(environment.gl.MAX_TEXTURE_IMAGE_UNITS));              
   });
