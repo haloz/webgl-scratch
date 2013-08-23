@@ -2,7 +2,7 @@ var gDebug = 1;
 
 requirejs.config({
   paths: {
-    'jquery'     : gDebug ? 'jquery-1.8.3' : 'http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min',
+    'jquery'     : gDebug ? 'jquery-2.0.3' : 'http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min',
     'glmatrix'   : gDebug ? 'gl-matrix' : 'gl-matrix-min',
     'webgl-debug'  : 'webgl-debug',
     'webgl-utils'  : 'webgl-utils',
