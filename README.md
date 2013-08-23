@@ -31,3 +31,19 @@ Todos afterwards
 * add multi-texturing to display product images onto cube fronts
 * add mouse and keyboard handling for prev/next (+circular movement animation)
 * do everything much more easy with a library or framework :)
+
+Overall workflow
+=============
+* we have a canvas element
+* our "startup" function creates a WebGL context onto that canvas using Google's external lib WebGLUtils
+* this internally just does a browser wrapping for doing canvas.getContext("Browser-specific-GL-context-string", attributes);
+* there's a demo shader with a VS/FS pair
+* shaders are loaded via AJAX using jQuery
+* together with shader compilation and linking => setupShaders function
+* this function also assigns shader attributes like vertex buffer or texture
+* next there's a setupBuffers. This creates a cube mesh using a vertex buffer in a Triangle list but also reusing vertices in a index buffer. And we also assign UV texture coordinates and a texture buffer
+* setupTexture function then just loads textures via DOM and assigns them into texture samplers (gl.bindTexture...)
+* we also need a stage, so we add a perspective camera using Model-View and Projection matrices
+* finally in the rendering loop we clear the scene, push some nice rotation animation onto the matrix stack and draw our cube
+* drawing the cube is mostly assigning pointers to our buffers onto the internal WebGL methods. Actual drawing is then just a gl.drawElements(...) call.
+
