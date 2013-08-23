@@ -3,10 +3,7 @@ var gDebug = 1;
 requirejs.config({
   paths: {
     'jquery'     : gDebug ? 'jquery-2.0.3' : 'http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min',
-    'glmatrix'   : gDebug ? 'gl-matrix' : 'gl-matrix-min',
-    'webgl-debug'  : 'webgl-debug',
-    'webgl-utils'  : 'webgl-utils',
-    'base-renderer' : 'base-renderer'
+    'glmatrix'   : gDebug ? 'gl-matrix' : 'gl-matrix-min'
   }
 });
 
@@ -35,7 +32,7 @@ require(['jquery', 'glmatrix', (gDebug ? 'webgl-debug' : ''), 'webgl-utils', 'ba
         
     baseRenderer.startup();
                 
-    baseRenderer.draw(baseRenderer.env);  // todo: remove param => use member!
+    baseRenderer.draw();  // todo: remove param => use member!
 
     //console.debug("tex units", environment.gl.getParameter(environment.gl.MAX_TEXTURE_IMAGE_UNITS));              
   });

@@ -60,4 +60,5 @@ define(['jquery', 'glmatrix', 'webgl-debug', 'webgl-utils', 'base-renderer'], fu
       baseRenderer.env.gl.useProgram(shaderProgram);
     });
   });
+
 });

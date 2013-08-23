@@ -213,44 +213,44 @@ BaseRenderer.prototype = {
 	  return shader;
 	},
 
-	setupShaders : function(env) {
+	setupShaders : function() {
 	  // load shader code
 	  var vertexShader = this.loadShaderViaAjax('shader/mycube.vs'),
 	      fragmentShader = this.loadShaderViaAjax('shader/mycube.fs');
 
 	  // compile shaders
-	  env.shaderProgram = env.gl.createProgram();
-	  env.gl.attachShader(env.shaderProgram, vertexShader);
-	  env.gl.attachShader(env.shaderProgram, fragmentShader);
-	  env.gl.linkProgram(env.shaderProgram);
-	  if(!env.gl.getProgramParameter(env.shaderProgram, env.gl.LINK_STATUS)) {
+	  this.env.shaderProgram = this.env.gl.createProgram();
+	  this.env.gl.attachShader(this.env.shaderProgram, vertexShader);
+	  this.env.gl.attachShader(this.env.shaderProgram, fragmentShader);
+	  this.env.gl.linkProgram(this.env.shaderProgram);
+	  if(!this.env.gl.getProgramParameter(this.env.shaderProgram, this.env.gl.LINK_STATUS)) {
 	    alert("Failed to setup shaders");
 	  }
-	  env.gl.useProgram(env.shaderProgram);
+	  this.env.gl.useProgram(this.env.shaderProgram);
 	          
 	  // assign variables to shaders
-	  env.shaderProgram.vertexPositionAttribute = env.gl.getAttribLocation(env.shaderProgram, "aVertexPosition");
-	  env.shaderProgram.vertexTextureAttribute = env.gl.getAttribLocation(env.shaderProgram, "aTextureCoordinates");
-	  env.shaderProgram.uniformSamplerLoc = env.gl.getUniformLocation(env.shaderProgram, "uSampler");
+	  this.env.shaderProgram.vertexPositionAttribute = this.env.gl.getAttribLocation(this.env.shaderProgram, "aVertexPosition");
+	  this.env.shaderProgram.vertexTextureAttribute = this.env.gl.getAttribLocation(this.env.shaderProgram, "aTextureCoordinates");
+	  this.env.shaderProgram.uniformSamplerLoc = this.env.gl.getUniformLocation(this.env.shaderProgram, "uSampler");
 	  
 	  // activate arrays
-	  env.gl.enableVertexAttribArray(env.shaderProgram.vertexPositionAttribute);
-	  env.gl.enableVertexAttribArray(env.shaderProgram.vertexTextureAttribute);    
+	  this.env.gl.enableVertexAttribArray(this.env.shaderProgram.vertexPositionAttribute);
+	  this.env.gl.enableVertexAttribArray(this.env.shaderProgram.vertexTextureAttribute);    
 	},
 
-	uploadModelViewMatrixToShader : function(env) {
-	  env.gl.uniformMatrix4fv(          
-	    env.gl.getUniformLocation(env.shaderProgram, "uMVMatrix"),
+	uploadModelViewMatrixToShader : function() {
+	  this.env.gl.uniformMatrix4fv(          
+	    this.env.gl.getUniformLocation(this.env.shaderProgram, "uMVMatrix"),
 	    false,
-	    env.modelViewMatrix
+	    this.env.modelViewMatrix
 	  );    
 	},
 
-	uploadProjectionMatrixToShader : function(env) {
-	  env.gl.uniformMatrix4fv(
-	    env.gl.getUniformLocation(env.shaderProgram, "uPMatrix"), 
+	uploadProjectionMatrixToShader : function() {
+	  this.env.gl.uniformMatrix4fv(
+	    this.env.gl.getUniformLocation(this.env.shaderProgram, "uPMatrix"), 
 	    false, 
-	    env.projectionMatrix
+	    this.env.projectionMatrix
 	  );    
 	},
 
@@ -275,7 +275,7 @@ BaseRenderer.prototype = {
 	  	WebGLDebugUtils.makeDebugContext(this.createGLContext(this.env.canvas)) : 
 	  	this.createGLContext(this.env.canvas);   
 	  
-	  this.setupShaders(this.env);
+	  this.setupShaders();
 	  this.setupBuffers(this.env);    
 	  this.setupTextures(this.env);
 	  
@@ -284,8 +284,8 @@ BaseRenderer.prototype = {
 	  
 	  // world
 	  this.setupMatrices(this.env);
-	  this.uploadModelViewMatrixToShader(this.env);
-	  this.uploadProjectionMatrixToShader(this.env);
+	  this.uploadModelViewMatrixToShader();
+	  this.uploadProjectionMatrixToShader();
 	  
 	  // set uSampler in fragment shader to have the value 0 so it matches the texture unit gl.TEXTURE0
 	  this.env.gl.uniform1i(this.env.shaderProgram.uniformSamplerLoc, 0);
@@ -296,86 +296,91 @@ BaseRenderer.prototype = {
 	  //this.env = env;
 	},
 
-	drawCube : function(env, texture) {
+	drawCube : function(texture) {
 	  // enable vertex buffer of the cube
-	  env.gl.bindBuffer(env.gl.ARRAY_BUFFER, env.cubeVertexPositionBuffer);
+	  this.env.gl.bindBuffer(this.env.gl.ARRAY_BUFFER, this.env.cubeVertexPositionBuffer);
 
 	  // set ptr to the buffer
-	  env.gl.vertexAttribPointer(
-	    env.shaderProgram.vertexPositionAttribute,
-	    env.cubeVertexPositionBuffer.itemSize, 
-	    env.gl.FLOAT, 
+	  this.env.gl.vertexAttribPointer(
+	    this.env.shaderProgram.vertexPositionAttribute,
+	    this.env.cubeVertexPositionBuffer.itemSize, 
+	    this.env.gl.FLOAT, 
 	    false, 
 	    0, 
 	    0
 	  );
 
 	  // enable index buffer for element draw
-	  env.gl.bindBuffer(env.gl.ELEMENT_ARRAY_BUFFER, env.cubeVertexIndexBuffer);
+	  this.env.gl.bindBuffer(this.env.gl.ELEMENT_ARRAY_BUFFER, this.env.cubeVertexIndexBuffer);
 
 	  // enable texture buffer
-	  env.gl.bindBuffer(env.gl.ARRAY_BUFFER, env.cubeVertexTextureCoordinateBuffer);
+	  this.env.gl.bindBuffer(this.env.gl.ARRAY_BUFFER, this.env.cubeVertexTextureCoordinateBuffer);
 	  
 	  // set ptr to texture buffer
-	  env.gl.vertexAttribPointer(
-	    env.shaderProgram.vertexTextureAttribute,
-	    env.cubeVertexTextureCoordinateBuffer.itemSize,
-	    env.gl.FLOAT,
+	  this.env.gl.vertexAttribPointer(
+	    this.env.shaderProgram.vertexTextureAttribute,
+	    this.env.cubeVertexTextureCoordinateBuffer.itemSize,
+	    this.env.gl.FLOAT,
 	    false,
 	    0,
 	    0
 	  );
 	  
 	  // activate + bind texture
-	  env.gl.activeTexture(env.gl.TEXTURE0);
+	  this.env.gl.activeTexture(this.env.gl.TEXTURE0);
 	  
-	  env.gl.bindTexture(env.gl.TEXTURE_2D, texture);
+	  this.env.gl.bindTexture(this.env.gl.TEXTURE_2D, texture);
 
 	  // draw!
-	  env.gl.drawElements(
-	    env.gl.TRIANGLES, 
-	    env.cubeVertexIndexBuffer.numberOfItems, 
-	    env.gl.UNSIGNED_SHORT, 
+	  this.env.gl.drawElements(
+	    this.env.gl.TRIANGLES, 
+	    this.env.cubeVertexIndexBuffer.numberOfItems, 
+	    this.env.gl.UNSIGNED_SHORT, 
 	    0
 	  );
 	},
 
-	draw : function(env) {
+	draw : function() {
 		var _this = this;    
 	  // refresh    
-	  env.requestID = requestAnimFrame(function() {
-	    _this.draw(env);
+	  this.env.requestID = requestAnimFrame(function() {
+	    _this.draw();
 	  });
-	  env.currentTime = Date.now();
+	  this.env.currentTime = Date.now();
 	      
 	  // compensate from varying frame rate    
-	  if(env.currentTime - env.previousFrameTimeStamp >= 1000) {      
-	    env.fpsCounter.innerHTML = env.nbrOfFramesForFPS;
-	    env.nbrOfFramesForFPS = 0;
-	    env.previousFrameTimeStamp = env.currentTime; 
+	  if(this.env.currentTime - this.env.previousFrameTimeStamp >= 1000) {      
+	    this.env.fpsCounter.innerHTML = this.env.nbrOfFramesForFPS;
+	    this.env.nbrOfFramesForFPS = 0;
+	    this.env.previousFrameTimeStamp = this.env.currentTime; 
 	  }
 	  
 	  // continue only if all textures were loaded
-	  if(env.ongoingImageLoads.length > 0) {
+	  if(this.env.ongoingImageLoads.length > 0) {
 	    return;
 	  }
 	  
-	  env.gl.viewport(0, 0, env.gl.viewportWidth, env.gl.viewportHeight);
-	  env.gl.clear(env.gl.COLOR_BUFFER_BIT | env.gl.DEPTH_BUFFER_BIT);
+	  this.env.gl.viewport(0, 0, this.env.gl.viewportWidth, this.env.gl.viewportHeight);
+	  this.env.gl.clear(this.env.gl.COLOR_BUFFER_BIT | this.env.gl.DEPTH_BUFFER_BIT);
 	      
 	  // push transforms for the object that is to be drawn (object view)
-	  this.pushModelViewMatrix(env);
+	  this.pushModelViewMatrix(this.env);
 
-	  if (env.animationStartTime === undefined) {
-	    env.animationStartTime = env.currentTime;
+	  if (this.env.animationStartTime === undefined) {
+	    this.env.animationStartTime = this.env.currentTime;
 	  }  
 	  
-	  mat4.rotate(env.modelViewMatrix, env.cubeRotationDegree, [0.0, 1.0, 0.0], env.modelViewMatrix);
-	  this.uploadModelViewMatrixToShader(env);    
-	  this.drawCube(env, env.woodTexture);
-	  this.popModelViewMatrix(env);
+	  mat4.rotate(
+	  	this.env.modelViewMatrix, 
+	  	this.env.cubeRotationDegree, 
+	  	[0.0, 1.0, 0.0], 
+	  	this.env.modelViewMatrix
+	  );
+	  this.uploadModelViewMatrixToShader();    
+	  this.drawCube(this.env.woodTexture);
+	  this.popModelViewMatrix(this.env);
 	  
-	  env.cubeRotationDegree += 0.01;
-	  env.nbrOfFramesForFPS++;    
+	  this.env.cubeRotationDegree += 0.01;
+	  this.env.nbrOfFramesForFPS++;    
 	}
 };
