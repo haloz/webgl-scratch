@@ -1,3 +1,7 @@
+/**
+ * @class BaseRenderer
+*/
+
 var BaseRenderer = function BaseRenderer(environment, param_jQuery, param_debug) {	
 	this.gDebugContextLost = 0;
 	this.gDebug = param_debug;
@@ -6,6 +10,14 @@ var BaseRenderer = function BaseRenderer(environment, param_jQuery, param_debug)
 }
 
 BaseRenderer.prototype = {
+    /**
+     * Using Google's WebGLUtils library create a WebGL context on the supplied canvas
+     * 
+     * @method createGLContext
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	createGLContext : function(canvas) {
 		var context = WebGLUtils.setupWebGL(canvas);
 		context.viewportWidth = canvas.width;
@@ -13,6 +25,15 @@ BaseRenderer.prototype = {
 		return context;
 	},
 
+    /**
+     * Event handler sink for handling GL contextlost events.
+     * Stops image loading a rendering loop.
+     * 
+     * @method onContextLost
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	onContextLost : function(event) {  
 	  // event.data.env
 	  event.preventDefault();
@@ -25,11 +46,29 @@ BaseRenderer.prototype = {
 	  event.data.env.ongoingImageLoads = [];    
 	},
 
+    /**
+     * Event handler sink for handling GL contextrestored events.
+     * Re-runs startup and starts rendering loop.
+     * 
+     * @method onContextRestored
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	onContextRestored : function(event) {	  
 	  this.startup(event.data.env);    
 	  this.draw(event.data.env);   
 	},
-	  
+
+    /**
+     * Creates and fills vertex and index buffers for demo mesh.
+     * Assignes texture UV coordinates into a texture coords buffer.
+     * 
+     * @method setupBuffers
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */	  
 	setupBuffers : function(env) {
 	  var 
 	    cubeVertices = [
@@ -133,6 +172,15 @@ BaseRenderer.prototype = {
 	  env.cubeVertexTextureCoordinateBuffer.numberOfItems = 24;
 	},
 	  
+    /**
+     * Triggers loading of a texture image. Attaches the async loading job into a queue.
+     * Loading events are then fetched by onTextureFinishLoading.
+     * 
+     * @method loadImageForTexture
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */	  
 	loadImageForTexture : function(env, url, texture) {
 	  var img = this.jQuery("<img/>").attr("src", url);
 	  env.ongoingImageLoads.push(img);
@@ -143,6 +191,15 @@ BaseRenderer.prototype = {
 	  });    
 	},
 	  
+    /**
+     * Event sink for successfully loaded texture images.
+     * Integrates and assignes the texture to the supplied texture object.
+     * 
+     * @method onTextureFinishLoading
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */	
 	onTextureFinishLoading : function(env, image, texture) {
 	  env.gl.bindTexture(env.gl.TEXTURE_2D, texture);
 	  env.gl.pixelStorei(env.gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -152,13 +209,29 @@ BaseRenderer.prototype = {
 	  env.gl.texParameteri(env.gl.TEXTURE_2D, env.gl.TEXTURE_MIN_FILTER, env.gl.LINEAR_MIPMAP_NEAREST);
 	  env.gl.bindTexture(env.gl.TEXTURE_2D, null);
 	},
-	 
+
+    /**
+     * Loads and assigns a demo texture.
+     * 
+     * @method setupTextures
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */		 
 	setupTextures : function(env) {
 	  // cube tex
 	  env.woodTexture = env.gl.createTexture();
 	  this.loadImageForTexture(env, "textures/wood_128x128.jpg", env.woodTexture);
 	},
-	  
+
+    /**
+     * Setup for the demo scene. Creates a perspective camera.
+     * 
+     * @method setupMatrices
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */			  
 	setupMatrices : function(env) {
 	  env.modelViewMatrix = mat4.create();
 	  mat4.identity(env.modelViewMatrix);
@@ -177,11 +250,27 @@ BaseRenderer.prototype = {
 	  env.modelViewMatrixStack = [];      
 	},
 
+    /**
+     * Adds a new matrix for the Model-View stack.
+     * 
+     * @method pushModelViewMatrix
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */	
 	pushModelViewMatrix : function(env) {
 	  var copyToPush = mat4.create(env.modelViewMatrix);
 	  env.modelViewMatrixStack.push(copyToPush);
 	},
 
+    /**
+     * Pops the last matrix from the Model-View stack.
+     * 
+     * @method popModelViewMatrix
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	popModelViewMatrix : function(env) {
 	  if(env.modelViewMatrixStack.lenght === 0) {
 	    console.error("error: cannot pop, env.modelViewMatrixStack stack is empty!");
@@ -189,6 +278,15 @@ BaseRenderer.prototype = {
 	  env.modelViewMatrix = env.modelViewMatrixStack.pop();
 	},
 
+    /**
+     * Use jQuery to load a shader. Also compiles the shader.
+     * Loading is done synchronous.
+     * 
+     * @method loadShaderViaAjax
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	loadShaderViaAjax : function(filename) {  
 	  var shader;
 	  var _this = this;                      
@@ -213,6 +311,16 @@ BaseRenderer.prototype = {
 	  return shader;
 	},
 
+    /**
+     * Loads the shaders for our Demo mesh. Compiles a shader program
+     * from a VS+FS. Supplies vertex-, index-, texture-buffers to the 
+     * shader program.
+     * 
+     * @method setupShaders
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	setupShaders : function() {
 	  // load shader code
 	  var vertexShader = this.loadShaderViaAjax('shader/mycube.vs'),
@@ -238,6 +346,14 @@ BaseRenderer.prototype = {
 	  this.env.gl.enableVertexAttribArray(this.env.shaderProgram.vertexTextureAttribute);    
 	},
 
+    /**
+     * Sends the current Model-View matrix to the shader program.
+     * 
+     * @method uploadModelViewMatrixToShader
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	uploadModelViewMatrixToShader : function() {
 	  this.env.gl.uniformMatrix4fv(          
 	    this.env.gl.getUniformLocation(this.env.shaderProgram, "uMVMatrix"),
@@ -246,6 +362,14 @@ BaseRenderer.prototype = {
 	  );    
 	},
 
+    /**
+     * Sends the current Projection matrix to the shader program.
+     * 
+     * @method uploadProjectionMatrixToShader
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	uploadProjectionMatrixToShader : function() {
 	  this.env.gl.uniformMatrix4fv(
 	    this.env.gl.getUniformLocation(this.env.shaderProgram, "uPMatrix"), 
@@ -254,6 +378,14 @@ BaseRenderer.prototype = {
 	  );    
 	},
 
+    /**
+     * Post-constructor setup method. Makes demo world ready for draw.
+     * 
+     * @method startup
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	startup : function() {
 	  if(this.gDebugContextLost) {
 	    this.env.canvas = WebGLDebugUtils.makeLostContextSimulatingCanvas(this.env.canvas);
@@ -296,6 +428,14 @@ BaseRenderer.prototype = {
 	  //this.env = env;
 	},
 
+    /**
+     * Draws a cube with the filled cube vertex-, index-, texture-buffers.
+     * 
+     * @method drawCube
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	drawCube : function(texture) {
 	  // enable vertex buffer of the cube
 	  this.env.gl.bindBuffer(this.env.gl.ARRAY_BUFFER, this.env.cubeVertexPositionBuffer);
@@ -340,6 +480,17 @@ BaseRenderer.prototype = {
 	  );
 	},
 
+    /**
+     * Rendering loop method. Uses browser-internal 
+     * "requestAnimFrame" method for fast drawing.
+     * Compensates framedrops with time segmenting.
+     * Draws our demo mesh and lets it rotate a bit ^^.
+     * 
+     * @method draw
+     * @member BaseRenderer
+     * 
+     * @since 0.0.1
+     */
 	draw : function() {
 		var _this = this;    
 	  // refresh    
