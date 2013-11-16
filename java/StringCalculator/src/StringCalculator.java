@@ -19,8 +19,8 @@ public class StringCalculator {
         String splitRegExp = "[\\s\\n"+delimiter+"]+";
         String numbersSubString[] = numbersString.split(splitRegExp);
         int sum = 0;
-        for(int i=0; i<numbersSubString.length; i++) {
-            sum += Integer.parseInt(numbersSubString[i]);
+        for (String aNumbersSubString : numbersSubString) {
+            sum += Integer.parseInt(aNumbersSubString);
         }
         return sum;
     }

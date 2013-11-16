@@ -36,7 +36,10 @@ public class StringCalculatorTest {
         assertEquals("Adding multiple numbers returns their sum", sc.Add("10,60,45,5"), 120);
         assertEquals("Allow line breaks as separators", sc.Add("4\n 6,5\n8"), 23);
         assertEquals("Parse example from task", sc.Add("1\n2,3"), 6);
+    }
 
+    @Test
+    public void AddTestFormatException() throws Exception {
         exception.expect(NumberFormatException.class);   // refactor BDD e.g. http://stackoverflow.com/questions/156503/how-do-you-assert-that-a-certain-exception-is-thrown-in-junit-4-tests/20008854#20008854
         sc.Add("1,\\n");
     }
