@@ -8,7 +8,16 @@
 public class StringCalculator {
     public int Add(String numbersString) {
         if(numbersString.isEmpty()) return 0;
-        String numbersSubString[] = numbersString.split("[\\s\\n,]+");
+
+        Character delimiter = ',';
+        if(numbersString.matches("^//.\\n.*")) {
+            String delimiterWithNumbers[] = numbersString.split("^//.\\n");
+            delimiter = numbersString.charAt(2);
+            numbersString = delimiterWithNumbers[1];
+        }
+
+        String splitRegExp = "[\\s\\n"+delimiter+"]+";
+        String numbersSubString[] = numbersString.split(splitRegExp);
         int sum = 0;
         for(int i=0; i<numbersSubString.length; i++) {
             sum += Integer.parseInt(numbersSubString[i]);
