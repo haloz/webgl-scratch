@@ -11,21 +11,24 @@ import java.util.regex.Pattern;
  * To change this template use File | Settings | File Templates.
  */
 public class StringCalculator {
+    public static final String DEFAULT_DELIMITER = ",";
+
+
     public int Add(String numbersString) {
         if(numbersString.isEmpty()) return 0;
 
-        String delimiter = ",";
+        String delimiter = DEFAULT_DELIMITER;
 
         Pattern findDelimiterRegexp = Pattern.compile("^\\/\\/(.+?)\\n(.*)");
         Matcher delimiterMatcher = findDelimiterRegexp.matcher(numbersString);
         while (delimiterMatcher.find()) {
             if (delimiterMatcher.group(1) != null) {
                 delimiter = delimiterMatcher.group(1);
+
             } if (delimiterMatcher.group(2) != null) {
                 numbersString = delimiterMatcher.group(2);
             }
         }
-
         String splitRegExp = "[\\s\\n"+delimiter+"]+";
         String numbersSubString[] = numbersString.split(splitRegExp);
         int sum = 0;

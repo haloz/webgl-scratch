@@ -40,3 +40,5 @@ Second Implementation
 * use LambdaJ convert
 * fewer regexp (we're not in Perl ...)
 * no plain arrays, use managed data types like List<>
+* better split into submethods
+* mock/stubs

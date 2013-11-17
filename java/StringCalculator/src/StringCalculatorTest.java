@@ -77,4 +77,14 @@ public class StringCalculatorTest {
     public void AddAllowMultiCharacterDelimiter() throws Exception {
         assertEquals("Can have multi-character delimiter", sc.Add("//#**#\n12#**#18"), 30);
     }
+
+    @Test
+    public void AddAllowMultipleDelimiters() throws Exception {
+        assertEquals("Can have multiple delimiters in brackets", sc.Add("//[*][%]\n1*2%3"), 6);
+    }
+
+    @Test
+    public void AddLongMultipleDelimiters() throws Exception {
+        assertEquals("Multiple delimiters with multiple characters", sc.Add("//[*#*][*:!]\n1*#*99*:!55"), 155);
+    }
 }
