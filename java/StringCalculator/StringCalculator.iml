@@ -16,6 +16,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="org.easymock:easymock:3.2" level="project" />
+    <orderEntry type="library" name="org.jmock:jmock-junit4:2.6.0" level="project" />
   </component>
 </module>
 
