@@ -1,9 +1,12 @@
 import ch.lambdaj.function.convert.Converter;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static ch.lambdaj.Lambda.*;
-import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.lessThan;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,22 +17,50 @@ import static java.util.Arrays.asList;
  */
 public class StringCalculatorTwo {
 
-    public List<Integer> convertToNumbers(String numbers) {
-        return convert(numbers.split(","), new Converter<String, Integer>() {
-            @Override
-            public Integer convert(String from) {
-                return Integer.parseInt(from);
-            }
-        });
+    private class NumberConverter implements Converter<String, Integer> {
+        @Override
+        public Integer convert(String from) {
+            return Integer.parseInt(from);
+        }
     }
 
-    public int Add(String numbers) {
+    private boolean usesCustomDelimiter(String numbers) {
+        return numbers.startsWith("//");
+
+    }
+
+    private List<Integer> parseNumbers(String numbers) {
         if(numbers.isEmpty()) {
-            return 0;
+            return Arrays.asList(); // empty list, also possible: new ArrayList<Integer>();
         }
 
-        List<Integer> convertedNumbers = convertToNumbers(numbers);
+        String tokens[] = tokenize(numbers);
 
-        return sum(convertedNumbers).intValue();
+        return convert(tokens, new NumberConverter());
+    }
+
+    private String[] tokenize(String numbers) {
+        String delimiter = ",";
+        if(usesCustomDelimiter(numbers)) {
+            Matcher m = Pattern.compile("\\/\\/(.)\\n(.*)").matcher(numbers);
+            if(m.find()) {
+                delimiter = Pattern.quote(m.group(1));
+                numbers = m.group(2);
+            }
+        }
+        return numbers.split("(" + delimiter + "|\n" + ")");
+    }
+
+    public int add(String numbers) {
+        List<Integer> parsedNumbers = parseNumbers(numbers);
+        testNegative(parsedNumbers);
+        return sum(parsedNumbers).intValue();
+    }
+
+    private void testNegative(List<Integer> convertedNumbers) throws NumberFormatException {
+        List<Integer> negatives = filter(lessThan(0), convertedNumbers);
+        if(negatives.size() > 0) {
+            throw new NumberFormatException("Negative numbers not allowed:" + join(negatives, ","));
+        }
     }
 }
